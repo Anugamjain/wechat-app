@@ -1,36 +1,20 @@
-backend/
+📁 backend/
 │
-├── 📁 controllers/        # Handle request logic (e.g., user, auth)
-│   └── auth-controller.js
+├── 📁 config/             # Configuration (e.g., env vars, DB, constants)
+│   ├── db.js
+│   ├── constants.js
+│   └── env.js
 │
-├── 📁 services/           # Reusable business logic (e.g., OTP, email)
-│   └── otp-service.js
+├── 📁 controllers/        # Request handling (thin layer)
+│   └── auth.controller.js
 │
-├── 📁 models/             # Database models / schemas (e.g., mongoose or sequelize)
-│   └── User.js
+├── 📁 services/           # Business logic (reusable services)
+│   └── otp.service.js
 │
-├── 📁 routes/             # Define and group routes
-│   └── auth-routes.js
+├── 📁 models/             # DB models/schemas
+│   └── user.model.js
 │
-├── 📁 config/             # Configuration files (e.g., db.js, constants.js)
-│   └── db.js
+├── 📁 routes/             # API routes
+│   └── auth.routes.js
 │
-├── 📁 middlewares/        # Express middlewares (e.g., auth, error handling)
-│   └── auth-middleware.js
-│
-├── 📁 utils/              # Utility functions (e.g., validators, helpers)
-│   └── sendEmail.js
-│
-├── 📁 validators/         # Joi or express-validator schemas
-│   └── authValidator.js
-│
-├── 📁 jobs/               # Scheduled jobs or cron scripts
-│
-├── 📁 logs/               # Log files (can be gitignored)
-│
-├── .env                   # Environment variables
-├── .gitignore             # Ignore node_modules, env, logs, etc.
-├── package.json
-├── server.js              # Entry point
-└── README.md
-# wechat-app
+├── 📁 middlewares/        # Middleware function
