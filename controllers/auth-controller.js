@@ -2,6 +2,7 @@ import otpServices from "../services/otp-services.js";
 import hashServices from "../services/hash-services.js";
 import userService from "../services/user-service.js";
 import tokenService from "../services/token-service.js";
+import UserDto from "../dtos/user-dto.js";
 
 class AuthController {
    async sendOTP (req, res) {
@@ -69,8 +70,9 @@ class AuthController {
          maxAge: 1000 * 60 * 60 * 24 * 30,
          httponly: true,
       });
+      const userdata = new UserDto(user);
 
-      res.json({accessToken, user});   
+      res.json({accessToken, user: userdata});   
    }
 }
 
