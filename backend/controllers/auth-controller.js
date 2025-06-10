@@ -19,7 +19,7 @@ class AuthController {
       const hashedOtp = hashServices.hashData(data);
 
       try{
-         // await otpServices.sendBySms(phone, otp);
+         await otpServices.sendBySms(phone, otp);
          return res.json({
             hash: `${hashedOtp}.${expires}`,
             phone,
