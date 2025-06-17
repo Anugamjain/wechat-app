@@ -15,9 +15,10 @@ const app = express();
 
 app.use(cookieParser());
 app.use(express.json({ limit: "8mb" }));
+
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -32,7 +33,7 @@ connectDB();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -40,9 +41,8 @@ const io = new Server(httpServer, {
 
 const socketUserMapping = {};
 io.on("connection", (socket) => {
-  registerSocketHandlers(io, socket, socketUserMapping); 
+  registerSocketHandlers(io, socket, socketUserMapping);
 });
-
 
 httpServer.listen(process.env.PORT, () =>
   console.log("Listening on PORT: ", process.env.PORT)

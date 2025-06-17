@@ -31,7 +31,7 @@ api.interceptors.response.use((config) => {
    return config;
 }, async (error) => {
    const originalRequest = error.config;
-   if (error.status === 401 && originalRequest && !originalRequest.isRetry) {
+   if (error.response?.status === 401 && originalRequest && !originalRequest.isRetry) {
       originalRequest.isRetry = true;
       try {
          await axios.get(`${process.env.REACT_APP_API_URL}/api/refresh`, {withCredentials: true});
