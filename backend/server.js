@@ -17,11 +17,7 @@ app.use(cookieParser());
 app.use(express.json({ limit: "8mb" }));
 
 app.use(
-  cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    methods: ["GET", "POST"],
-    credentials: true,
-  })
+  cors()
 );
 app.use("/storage", express.static("storage"));
 app.use(authRouter);
@@ -31,13 +27,7 @@ connectDB();
 
 // Web - Sockets logic
 const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-});
+const io = new Server(httpServer);
 
 const socketUserMapping = {};
 io.on("connection", (socket) => {
