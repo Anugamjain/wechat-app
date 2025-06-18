@@ -17,8 +17,16 @@ app.use(cookieParser());
 app.use(express.json({ limit: "8mb" }));
 
 app.use(
-  cors()
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+      return callback(null, origin); // reflect the requesting origin
+    },
+    credentials: true,
+  })
 );
+
 app.use("/storage", express.static("storage"));
 app.use(authRouter);
 app.use(activateRouter);
@@ -27,7 +35,15 @@ connectDB();
 
 // Web - Sockets logic
 const httpServer = createServer(app);
-const io = new Server(httpServer);
+const io = new Server(httpServer, {
+  cors: {
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      return callback(null, origin);
+    },
+    credentials: true,
+  },
+});
 
 const socketUserMapping = {};
 io.on("connection", (socket) => {

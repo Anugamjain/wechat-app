@@ -5,8 +5,6 @@ const api = axios.create({
   headers: {
     "content-type": "application/json",
     Accept: "application/json",
-   //  Cookie:
-   //    "accesstoken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODUxMDhkZDk5MjA3MDIxZjAyN2JmODkiLCJhY3RpdmF0ZWQiOmZhbHNlLCJpYXQiOjE3NTAxNzk5ODYsImV4cCI6MTc1MDE4MTE4Nn0.IeYbj8DBOKCbq7eWKd-86pYix6FRmv8MFcQRXjpHztM;refreshtoken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODUxMDhkZDk5MjA3MDIxZjAyN2JmODkiLCJhY3RpdmF0ZWQiOmZhbHNlLCJpYXQiOjE3NTAxNzk5ODYsImV4cCI6MTc4MTczNzU4Nn0.f9U56ZbDpVaSpBFLtf2S5Cna4pbdANX4z8JLkl7Q3DU",
   },
   withCredentials: true,
 });
