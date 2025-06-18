@@ -70,16 +70,20 @@ class AuthController {
 
     await tokenService.storeRefreshToken(refreshToken, user._id);
 
-    res.cookie("refreshtoken", refreshToken, {
+    const isProduction = process.env.NODE_ENV === "production";
+
+    res.cookie("refreshToken", refreshToken, {
       maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-      httponly: true,
+      httpOnly: true,
+      secure: isProduction, // false on local, true on prod
+      sameSite: isProduction ? "None" : "Lax", // Lax works locally
     });
 
-    res.cookie("accesstoken", accessToken, {
-      maxAge: 1000 * 60 * 60 * 24 * 30,
-      httponly: true,
-      //   secure: false, // ← required in HTTPS
-      //   sameSite: "none", // ← allow cross-origin
+    res.cookie("accessToken", accessToken, {
+      maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+      httpOnly: true,
+      secure: isProduction, // false on local, true on prod
+      sameSite: isProduction ? "None" : "Lax", // Lax works locally
     });
 
     const userdata = new UserDto(user);
@@ -89,7 +93,7 @@ class AuthController {
 
   async refresh(req, res) {
     // get refresh token from cookie
-    const { refreshtoken: refreshTokenFromCookie } = req.cookies;
+    const { refreshToken: refreshTokenFromCookie } = req.cookies;
 
     // check if the token is verified
     let userData;
@@ -131,14 +135,21 @@ class AuthController {
       return res.status(500).json({ message: "Internal Error" });
     }
 
-    res.cookie("refreshtoken", refreshToken, {
+    
+    const isProduction = process.env.NODE_ENV === "production";
+
+    res.cookie("refreshToken", refreshToken, {
       maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-      httponly: true,
+      httpOnly: true,
+      secure: isProduction, // false on local, true on prod
+      sameSite: isProduction ? "None" : "Lax", // Lax works locally
     });
 
-    res.cookie("accesstoken", accessToken, {
-      maxAge: 1000 * 60 * 60 * 24 * 30,
-      httponly: true,
+    res.cookie("accessToken", accessToken, {
+      maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+      httpOnly: true,
+      secure: isProduction, // false on local, true on prod
+      sameSite: isProduction ? "None" : "Lax", // Lax works locally
     });
 
     const userDto = new UserDto(user);
@@ -149,20 +160,22 @@ class AuthController {
   async logoutUser(req, res) {
     try {
       // Delete refresh token from DB
-      const { refreshtoken } = req.cookies;
-      await tokenService.removeToken(refreshtoken);
+      const { refreshToken } = req.cookies;
+      await tokenService.removeToken(refreshToken);
+
+      const isProduction = process.env.NODE_ENV === "production";
 
       // Clear cookies
-      res.clearCookie("refreshtoken", {
+      res.clearCookie("refreshToken", {
         httpOnly: true,
-        sameSite: "strict",
-        // secure: process.env.NODE_ENV === 'production', // only in production
+        secure: isProduction, // false on local, true on prod
+        sameSite: isProduction ? "None" : "Lax", // Lax works locally
       });
 
-      res.clearCookie("accesstoken", {
+      res.clearCookie("accessToken", {
         httpOnly: true,
-        sameSite: "strict",
-        // secure: process.env.NODE_ENV === 'production',
+        secure: isProduction, // false on local, true on prod
+        sameSite: isProduction ? "None" : "Lax", // Lax works locally
       });
 
       // Send response

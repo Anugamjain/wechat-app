@@ -2,13 +2,13 @@ import tokenService from "../services/token-service.js";
 
 const authMiddleware =  async (req, res, next) => {
    try {
-      const {accesstoken} = req.cookies;
+      const {accessToken} = req.cookies;
 
-      if (!accesstoken) {
+      if (!accessToken) {
          console.log('No access token provided');
          throw new Error();
       }
-      const userData = await tokenService.verifyAccessToken(accesstoken);
+      const userData = await tokenService.verifyAccessToken(accessToken);
 
       if (!userData) {
          console.log('Invalid or expired access token');
