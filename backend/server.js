@@ -17,8 +17,12 @@ app.use(cookieParser());
 app.use(express.json({ limit: "8mb" }));
 
 app.use(
-  cors()
+  cors({
+    origin: true, // dynamically reflects the origin
+    credentials: true, // allow cookies from frontend
+  })
 );
+
 app.use("/storage", express.static("storage"));
 app.use(authRouter);
 app.use(activateRouter);
