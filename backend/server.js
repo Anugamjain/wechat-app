@@ -18,8 +18,12 @@ app.use(express.json({ limit: "8mb" }));
 
 app.use(
   cors({
-    origin: true, // dynamically reflects the origin
-    credentials: true, // allow cookies from frontend
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+      return callback(null, origin); // reflect the requesting origin
+    },
+    credentials: true,
   })
 );
 
@@ -31,7 +35,15 @@ connectDB();
 
 // Web - Sockets logic
 const httpServer = createServer(app);
-const io = new Server(httpServer);
+const io = new Server(httpServer, {
+  cors: {
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      return callback(null, origin);
+    },
+    credentials: true,
+  },
+});
 
 const socketUserMapping = {};
 io.on("connection", (socket) => {
