@@ -11,7 +11,7 @@ const socketInit = (user) => {
       transports: ['websocket'], 
       withCredentials: true,
    }
-   return io('http://localhost:5500', options);
+   return io(process.env.REACT_APP_API_URL, options);
 }
 
 export default socketInit;
