@@ -17,6 +17,19 @@ class ActivateController {
     }
 
     try {
+      const user = await userService.findUser({ _id: userId });
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Delete previous avatar from cloudinary, if exists
+      if (user.avatar) {
+        const segments = user.avatar.split("/");
+        const publicIdWithExt = segments.slice(-2).join("/"); // e.g., avatars/t6wlsagxhel9g4icrfsz.jpg
+        const publicId = publicIdWithExt.split(".")[0]; // Remove extension
+        await cloudinary.uploader.destroy(publicId);
+      }
+
       const result = await new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
@@ -32,13 +45,8 @@ class ActivateController {
         if (!uploadStream) {
           return reject(new Error("Failed to create upload stream"));
         }
-        uploadStream.end(file.buffer); 
+        uploadStream.end(file.buffer);
       });
-
-      const user = await userService.findUser({ _id: userId });
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
 
       user.activated = true;
       user.name = name;
