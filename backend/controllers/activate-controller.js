@@ -1,45 +1,14 @@
-import sharp from "sharp";
-import path from "path";
-import fs from "fs";
+import cloudinary from "../config/cloudinary.js";
 import userService from "../services/user-service.js";
 import UserDto from "../dtos/user-dto.js";
 
 class ActivateController {
   async activate(req, res) {
-    const { name, avatar } = req.body;
+    const { name } = req.body;
+    const file = req.file;
 
-    if (!name || !avatar) {
+    if (!name || !file) {
       return res.status(400).json({ message: "All fields are required!" });
-    }
-
-    const matches = avatar.match(/^data:image\/(png|jpeg|jpg);base64,(.+)$/);
-    if (!matches) {
-      return res.status(400).json({ message: "Invalid image format" });
-    }
-
-    const ext = matches[1];
-    const buffer = Buffer.from(matches[2], "base64");
-    const imageName = `${Date.now()}-${Math.round(1e9 * Math.random())}.${ext}`;
-    const imagePath = path.resolve("storage", imageName);
-
-    // Ensure 'storage' directory exists
-    try {
-      const storageDir = path.resolve("storage");
-      if (!fs.existsSync(storageDir)) {
-        fs.mkdirSync(storageDir);
-      }
-    } catch (err) {
-      console.error("Storage directory creation error:", err);
-      return res.status(500).json({ message: "Server configuration error" });
-    }
-
-    try {
-      await sharp(buffer)
-        .resize({ width: 150 })
-        .toFile(imagePath);
-    } catch (err) {
-      console.error("Sharp image processing failed:", err.message);
-      return res.status(500).json({ message: "Image processing failed. Try a different image." });
     }
 
     const userId = req.user?._id;
@@ -53,15 +22,42 @@ class ActivateController {
         return res.status(404).json({ message: "User not found" });
       }
 
+      // Delete previous avatar from cloudinary, if exists
+      if (user.avatar) {
+        const segments = user.avatar.split("/");
+        const publicIdWithExt = segments.slice(-2).join("/"); // e.g., avatars/t6wlsagxhel9g4icrfsz.jpg
+        const publicId = publicIdWithExt.split(".")[0]; // Remove extension
+        await cloudinary.uploader.destroy(publicId);
+      }
+
+      const result = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: "avatars",
+            resource_type: "image",
+            transformation: [{ width: 150, crop: "scale" }],
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        if (!uploadStream) {
+          return reject(new Error("Failed to create upload stream"));
+        }
+        uploadStream.end(file.buffer);
+      });
+
       user.activated = true;
       user.name = name;
-      user.avatar = `/storage/${imageName}`;
+      user.avatar = result.secure_url;
+
       await user.save();
 
       return res.json({ user: new UserDto(user), auth: true });
     } catch (err) {
-      console.error("Database update error:", err.message);
-      return res.status(500).json({ message: "Failed to update user profile" });
+      console.error("Cloudinary upload failed:", err.message);
+      return res.status(500).json({ message: "Image upload failed" });
     }
   }
 }

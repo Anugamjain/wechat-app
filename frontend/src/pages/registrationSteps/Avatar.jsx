@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Card from "../../components/shared/Card";
 import Button from "../../components/shared/Button";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,19 +8,24 @@ import { activate } from "../../http";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../components/shared/Loader";
 
-const Avatar = ({ nextStep }) => {
+const Avatar = () => {
   const { name, avatar } = useSelector((state) => state.activate);
-  const [image, setImage] = useState(avatar);
+  const [imageFile, setImageFile] = useState(null);
+  const [imageURL, setImageURL] = useState(avatar);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const submitAvatar = async () => {
-    if (!name || !avatar) return;
+    if (!name || !imageFile) return;
+
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("avatar", imageFile);
 
     setLoading(true);
     try {
-      const res = await activate({name, avatar});
+      const res = await activate(formData);
       const {data} = res;
       if (data.auth) {
         dispatch(setAuth(data.user));
@@ -35,12 +40,13 @@ const Avatar = ({ nextStep }) => {
   
   const captureImage = (e) => {
     const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = () => {
-      setImage(reader.result);
-      dispatch(setAvatar(reader.result));
-    };
+    if (!file) return;
+
+    setImageFile(file);
+    const imageURL = URL.createObjectURL(file);
+    setImageURL(imageURL);
+    
+    dispatch(setAvatar(imageURL));
   };
 
   if (loading)  return <Loader message='Activation in Progress...'/>
@@ -55,7 +61,7 @@ const Avatar = ({ nextStep }) => {
             </p>
           </div>
           <div className="w-[110px] h-[110px] border-2 border-[#0077ff] rounded-full overflow-hidden">
-            <img className=" object-cover" src={image} alt="avatar" />
+            <img className=" object-cover" src={imageURL} alt="avatar" />
           </div>
           <div className="mt-3 -mb-5">
             <input type="file" id="avatarInput" onChange={captureImage} className="hidden" />
