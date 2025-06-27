@@ -28,6 +28,8 @@ export const getRoomById = (roomId) => api.get(`/api/room/${roomId}`);
 
 export const getUser = (id) => api.get(`/api/user/${id}`);
 
+export const deleteRoomByRoomId = (roomId) => api.delete(`/api/room/${roomId}`);
+
 // Interceptor
 api.interceptors.response.use(
   (config) => {

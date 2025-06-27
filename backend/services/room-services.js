@@ -21,7 +21,7 @@ class RoomService {
     return room;
   }
   async deleteRoomById(roomId) {
-    await RoomService.deleteOne({_id: roomId});
+    await RoomModel.deleteOne({_id: roomId});
   }
 }
 

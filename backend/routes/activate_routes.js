@@ -12,5 +12,6 @@ activateRouter.post('/api/create-room', authMiddleware, roomsController.addRoom)
 activateRouter.get('/api/rooms', authMiddleware, roomsController.getRooms);
 activateRouter.get('/api/room/:roomId', authMiddleware, roomsController.getRoom);
 activateRouter.get('/api/user/:userId', authMiddleware, userController.getUser);
+activateRouter.delete('/api/room/:roomId', authMiddleware, roomsController.deleteRoom);
 
 export default activateRouter;

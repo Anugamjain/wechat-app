@@ -1,5 +1,6 @@
 import roomServices from "../services/room-services.js";
 import RoomDto from "../dtos/room-dto.js";
+import { ACTIONS } from "../actions.js";
 
 class RoomsController{
    async addRoom(req, res) {
@@ -30,10 +31,29 @@ class RoomsController{
    }
    async deleteRoom(req, res) {
       try {
-         const {roomId} = req.params;
-         roomServices.deleteRoomById(roomId);
+         const { roomId } = req.params;
+
+         await roomServices.deleteRoomById(roomId);
+
+         // Emit room-deleted to all clients in the room
+         const socketUserMapping = req.app.get("socketUserMapping");
+         const io = req.app.get("io"); 
+         io.to(roomId).emit(ACTIONS.ROOM_DELETED);
+
+         // Force all sockets to leave the room
+         const clients = Array.from(io.sockets.adapter.rooms.get(roomId) || []);
+         clients.forEach((socketId) => {
+            const socket = io.sockets.sockets.get(socketId);
+            if (socket) {
+               socket.leave(roomId);
+               if (socketUserMapping) delete socketUserMapping[socketId];
+            }
+         });
+
+         return res.status(200).json({ message: "Room deleted" });
       } catch (error) {
-         res.status(401).json({message: "Error deleting room!"});
+         console.error("Room deletion failed:", error.message);
+         res.status(500).json({ message: "Error deleting room!" });
       }
    }
 }

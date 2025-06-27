@@ -19,9 +19,8 @@ app.use(express.json({ limit: "8mb" }));
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps, curl, etc.)
       if (!origin) return callback(null, true);
-      return callback(null, origin); // reflect the requesting origin
+      return callback(null, origin);
     },
     credentials: true,
   })
@@ -46,6 +45,9 @@ const io = new Server(httpServer, {
 });
 
 const socketUserMapping = {};
+
+app.set("io", io);
+
 io.on("connection", (socket) => {
   registerSocketHandlers(io, socket, socketUserMapping);
 });
