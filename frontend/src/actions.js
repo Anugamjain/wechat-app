@@ -9,4 +9,5 @@ export const ACTIONS = {
    REMOVE_PEER: 'remove-peer',
    MUTE: 'mute',
    UN_MUTE: 'un-mute',
+   ROOM_DELETED: "room-deleted",
 };

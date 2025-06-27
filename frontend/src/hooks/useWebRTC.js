@@ -3,6 +3,7 @@ import { useStateWithCallback } from "./useStateWithCallback";
 import socketInit from "../sockets/index";
 import { ACTIONS } from "../actions";
 import freeice from "freeice";
+import { useNavigate } from "react-router-dom";
 
 export const useWebRTC = (roomId, user) => {
   const [clients, setClients] = useStateWithCallback([]);
@@ -13,7 +14,8 @@ export const useWebRTC = (roomId, user) => {
   const clientsRef = useRef(null);
   const remoteDescriptionRef = useRef({});
   const flag = useRef({}); // flag array for re-updating the remote session description
-  const isMutedRef = useRef(true); // default: muted on join
+
+  const navigate = useNavigate();
 
   const addNewClient = useCallback(
     (newClient, cb) => {
@@ -24,7 +26,7 @@ export const useWebRTC = (roomId, user) => {
       }, cb);
     },
     [setClients]
-  );
+        );
 
   const startCapture = useCallback(async () => {
         localMediaStream.current = await navigator.mediaDevices.getUserMedia({
@@ -172,6 +174,11 @@ export const useWebRTC = (roomId, user) => {
         setClients(updatedClients);
       }, []);
 
+  const handleDeleteRoom = useCallback(() => {
+        alert("This room has been deleted by the admin.");
+        navigate("/rooms");
+      }, [navigate]);
+
   // Initialise clientsRef
   useEffect(() => {
     clientsRef.current = clients;
@@ -209,6 +216,7 @@ export const useWebRTC = (roomId, user) => {
       socketRef.current.on(ACTIONS.UN_MUTE, ({ userId }) => {
         handleSetMute(false, userId);
       });
+      socketRef.current.on(ACTIONS.ROOM_DELETED, handleDeleteRoom);
     }
 
     init();
@@ -227,6 +235,13 @@ export const useWebRTC = (roomId, user) => {
       socketRef.current.off(ACTIONS.SESSION_DESCRIPTION);
       socketRef.current.off(ACTIONS.MUTE);
       socketRef.current.off(ACTIONS.UN_MUTE);
+
+      // To fully disconnect
+      socketRef.current.disconnect();
+
+      // Optional: clean up listeners again just in case
+      socketRef.current.off();
+
       console.log("closing all Connections");
       for (let peerId in rtcConnections.current) {
         rtcConnections.current[peerId].close();

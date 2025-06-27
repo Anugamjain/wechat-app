@@ -2,7 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useWebRTC } from "../hooks/useWebRTC";
 import { useEffect, useState } from "react";
-import { getRoomById } from "../http";
+import { getRoomById, deleteRoomByRoomId } from "../http";
 
 const borderColors = [
   "#FF6B6B", // coral red
@@ -88,18 +88,26 @@ const Room = () => {
   const [room, setRoom] = useState(null);
   const navigate = useNavigate();
 
+  const handleDeleteRoom = async () => {
+    if (window.confirm("Are you sure you want to delete this room?")) {
+      await deleteRoomByRoomId(roomId);
+      navigate("/rooms");
+    }
+  };
+
   // Fetch Room Data
   useEffect(() => {
     const fun = async () => {
       const { data } = await getRoomById(roomId);
       setRoom(data.roomInfo);
+      console.log("Room Data:", data.roomInfo);
     };
     fun();
   }, [roomId]);
 
   return (
     <div className="">
-      <div className="flex items-center mx-17 p-9">
+      <div className="flex justify-between items-center mx-17 p-9">
         <button
           onClick={() => navigate("/rooms")}
           className="flex gap-1 rounded-2xl px-5 py-1 cursor-pointer "
@@ -109,6 +117,13 @@ const Room = () => {
             All Voice Rooms
           </span>
         </button>
+        { room && room.adminId.id === user.id && (
+          <div>
+            <button onClick={handleDeleteRoom} className="bg-[#e63535] px-2 py-[4px] rounded-lg">
+              Delete Room
+            </button>
+          </div>
+        )}
       </div>
       <h1 className="mt-[-12px] mb-2 ml-8 font-bold">All connected Clients</h1>
       <div className="bg-[#282828] min-h-screen rounded-t-xl">
