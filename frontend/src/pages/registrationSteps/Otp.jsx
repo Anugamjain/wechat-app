@@ -13,12 +13,13 @@ const Otp = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { phone, hash } = useSelector((state) => state.auth.otp);
+  const { contact, hash } = useSelector((state) => state.auth.otp);
 
   async function submitOtp() {
     if (otp === '0000' || otp.length !== 4)  return;
+    const type = contact?.includes('@') ? 'email' : 'phone';
     try {
-      const res = await verifyOtp({ phone, hash, otp });
+      const res = await verifyOtp({ contact, hash, otp, type });
       console.log(res.data);
       dispatch(setAuth(res.data.user));
       navigate("/activate");  

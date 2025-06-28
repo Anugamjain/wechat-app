@@ -6,8 +6,8 @@ const authSlice = createSlice({
     isAuth: false,
     user: null,
     otp: {
-      phone: '',
-      hash: ''
+      contact: '',
+      hash: '',
     }
   },
   reducers: {
@@ -23,4 +23,4 @@ const authSlice = createSlice({
 });
 
 export const { setAuth, setOtp } = authSlice.actions;
-export default authSlice.reducer; // 👈 export the reducer like this
+export default authSlice.reducer;

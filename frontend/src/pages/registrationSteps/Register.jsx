@@ -3,7 +3,7 @@ import Phone from "./Phone";
 import Email from "./Email";
 
 const Register = ({ nextStep }) => {
-  const [type, setType] = useState("phone");
+  const [type, setType] = useState("email");
 
   const PhoneEmailMap = {
     phone: Phone,

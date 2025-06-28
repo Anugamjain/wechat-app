@@ -11,14 +11,15 @@ const Phone = ({ nextStep }) => {
   const dispatch = useDispatch();
 
   async function getOtp () {
-    if (phoneNo.length < 12) return; 
     try{
-      const res = await sendOtp({phone: phoneNo});
-      const {phone, hash} = res.data;
+      const res = await sendOtp({reqType: 'phone' ,phone: phoneNo});
+      const {contact, hash} = res.data;
       console.log(res.data);
-      dispatch(setOtp({phone, hash}));
+      dispatch(setOtp({contact, hash}));
       nextStep();
     } catch (err) {
+      alert("Invalid Phone Number");
+      setPhoneNo("");
       console.log(err);
     }
   }
