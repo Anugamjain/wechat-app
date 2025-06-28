@@ -19,7 +19,7 @@ function registerSocketHandlers(io, socket, socketUserMapping) {
 
     // Now get the clients in the room
     const clients = Array.from(io.sockets.adapter.rooms.get(roomId) || []);
-    console.log("clients in room", clients);
+    // console.log("clients in room", clients);
 
     clients.forEach((clientId) => {
       if (clientId === socket.id) return; // Don't connect to self
@@ -62,7 +62,6 @@ function registerSocketHandlers(io, socket, socketUserMapping) {
       io.to(clientId).emit(ACTIONS.MUTE, { userId });
     });
   }
-  
 
   function handleUnMute({ roomId, userId }) {
     const clients = Array.from(io.sockets.adapter.rooms.get(roomId) || []);

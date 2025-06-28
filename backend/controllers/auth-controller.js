@@ -6,62 +6,87 @@ import UserDto from "../dtos/user-dto.js";
 
 class AuthController {
   async sendOTP(req, res) {
-    const { phone } = req.body;
-    if (!phone) {
-      res.status(400).json({ message: "phone number is required" });
-      return;
+    const { reqType, phone, email } = req.body;
+    if (reqType == 'phone' && !phone) {
+      return res.status(400).json({ message: "phone number is required" });
+    }
+    if (reqType == 'email' && !email) {
+      return res.status(400).json({ message: "email is required" });
+    }
+    if (reqType !== 'phone' && reqType !== 'email') {
+      return res.status(400).json({ message: "Invalid request type" });
+    }
+    if (reqType === 'phone') {
+      const phoneRegex = /^\+[1-9]\d{9,14}$/;
+      if (!phoneRegex.test(phone)) {
+        return res.status(400).json({ message: "Invalid phone number" });
+      }
+    } else if (reqType === 'email') {
+      const emailRegex = /^(?:[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:(?:\\[\x00-\x7F])|[^\\"])*")@(?:(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}|(?:\[(?:[0-9]{1,3}\.){3}[0-9]{1,3}\]))$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: "Invalid email address" });
+      }
     }
 
     const otp = await otpServices.generateOtp();
     const ttl = 1000 * (5 * 60); // time-to-live = 5 min
     const expires = Date.now() + ttl;
-    const data = `${phone}.${otp}.${expires}`;
+    const data = `${reqType === 'phone' ? phone : email}.${otp}.${expires}`;
     const hashedOtp = hashServices.hashData(data);
 
     try {
-      // await otpServices.sendBySms(phone, otp);
+      if (reqType === 'phone') {
+        // await otpServices.sendBySms(phone, otp);
+      } else if (reqType === 'email') {
+        await otpServices.sendByEmail(email, otp);
+      }
+
+      // Store the OTP hash and expiration in the database or cache
+      // This is a placeholder; implement your storage logic here
+      // await otpServices.storeOtp({ phone, email, hashedOtp, expires });
       return res.json({
+        message: "OTP sent successfully",
         hash: `${hashedOtp}.${expires}`,
-        phone,
-        otp,
+        contact: reqType === 'phone' ? phone : email,
+        otp: reqType === 'phone' ? otp : null,
       });
     } catch (err) {
       console.log(err);
-      res.status(500).json({ message: "SMS sending failed" });
+      res.status(500).json({ message: "OTP sending failed"});
     }
   }
 
   async verifyOtp(req, res) {
-    const { otp, hash, phone } = req.body;
-    if (!otp || !hash || !phone) {
-      res.status(400).json({
+    const { otp, hash, contact, type } = req.body;
+    if (!otp || !hash || !contact || !type) {
+      return res.status(400).json({
         message: "All fields are required!",
       });
     }
 
     const [hashedOtp, expires] = hash.split(".");
     if (Date.now() > +expires) {
-      res.status(400).json({
+      return res.status(400).json({
         message: "OTP Expired!",
       });
     }
 
-    const data = `${phone}.${otp}.${expires}`;
+    const data = `${contact}.${otp}.${expires}`;
 
     if (!otpServices.verifyOtp(hashedOtp, data)) {
-      res.status(400).json({ message: "Invalid OTP" });
+      return res.status(400).json({ message: "Invalid OTP" });
     }
-
+    
     let user;
-
+    const queryField = type === 'email' ? { email: contact } : { phone: contact };
     try {
-      user = await userService.findUser({ phone });
+      user = await userService.findUser({ ...queryField });
       if (!user) {
-        user = await userService.createUser({ phone });
+        user = await userService.createUser({ ...queryField });
       }
     } catch (err) {
       console.log(err);
-      res.status(500).json({ message: "DB Error" });
+      return res.status(500).json({ message: "DB Error" });
     }
     const { accessToken, refreshToken } = tokenService.generateTokens({
       _id: user._id,
